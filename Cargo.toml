@@ -1,0 +1,22 @@
+[package]
+name = "stratadb-python"
+version = "0.6.0"
+edition = "2021"
+description = "Python bindings for StrataDB"
+license = "MIT"
+repository = "https://github.com/strata-systems/strata-python"
+
+[lib]
+name = "_stratadb"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.22", features = ["extension-module"] }
+numpy = "0.22"
+
+# Use git dependency during development, switch to crates.io version on release
+stratadb = { git = "https://github.com/strata-systems/strata-core", branch = "main" }
+# stratadb = "0.5"  # Uncomment when published to crates.io
+
+[build-dependencies]
+pyo3-build-config = "0.22"
