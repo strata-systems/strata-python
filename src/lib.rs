@@ -755,13 +755,37 @@ impl PyStrata {
     ///
     /// Returns True if the cell existed and was deleted, False otherwise.
     fn state_delete(&self, cell: &str) -> PyResult<bool> {
-        self.inner.state_delete(cell).map_err(to_py_err)
+        match self
+            .inner
+            .executor()
+            .execute(Command::StateDelete {
+                branch: None,
+                space: None,
+                cell: cell.to_string(),
+            })
+            .map_err(to_py_err)?
+        {
+            Output::Bool(deleted) => Ok(deleted),
+            _ => Err(PyRuntimeError::new_err("Unexpected output for StateDelete")),
+        }
     }
 
     /// List state cell names with optional prefix filter.
     #[pyo3(signature = (prefix=None))]
     fn state_list(&self, prefix: Option<&str>) -> PyResult<Vec<String>> {
-        self.inner.state_list(prefix).map_err(to_py_err)
+        match self
+            .inner
+            .executor()
+            .execute(Command::StateList {
+                branch: None,
+                space: None,
+                prefix: prefix.map(|s| s.to_string()),
+            })
+            .map_err(to_py_err)?
+        {
+            Output::Keys(keys) => Ok(keys),
+            _ => Err(PyRuntimeError::new_err("Unexpected output for StateList")),
+        }
     }
 
     // =========================================================================
@@ -822,16 +846,27 @@ impl PyStrata {
         limit: Option<u64>,
         cursor: Option<&str>,
     ) -> PyResult<PyObject> {
-        let (keys, next_cursor) = self
+        match self
             .inner
-            .kv_list_paginated(prefix, cursor, limit)
-            .map_err(to_py_err)?;
-        let dict = PyDict::new_bound(py);
-        dict.set_item("keys", keys)?;
-        if let Some(c) = next_cursor {
-            dict.set_item("cursor", c)?;
+            .executor()
+            .execute(Command::KvList {
+                branch: None,
+                space: None,
+                prefix: prefix.map(|s| s.to_string()),
+                cursor: cursor.map(|s| s.to_string()),
+                limit,
+            })
+            .map_err(to_py_err)?
+        {
+            Output::Keys(keys) => {
+                let dict = PyDict::new_bound(py);
+                dict.set_item("keys", keys)?;
+                // KvList returns Output::Keys which doesn't include cursor
+                // Cursor-based pagination for KV is not yet fully implemented in core
+                Ok(dict.unbind().into_any())
+            }
+            _ => Err(PyRuntimeError::new_err("Unexpected output for KvList")),
         }
-        Ok(dict.unbind().into_any())
     }
 
     /// List events by type with pagination support.
@@ -845,15 +880,29 @@ impl PyStrata {
         limit: Option<u64>,
         after: Option<u64>,
     ) -> PyResult<PyObject> {
-        let events = self
+        match self
             .inner
-            .event_get_by_type_paginated(event_type, limit, after)
-            .map_err(to_py_err)?;
-        let list = PyList::empty_bound(py);
-        for vv in events {
-            list.append(versioned_to_py(py, vv))?;
+            .executor()
+            .execute(Command::EventGetByType {
+                branch: None,
+                space: None,
+                event_type: event_type.to_string(),
+                limit,
+                after_sequence: after,
+            })
+            .map_err(to_py_err)?
+        {
+            Output::VersionedValues(events) => {
+                let list = PyList::empty_bound(py);
+                for vv in events {
+                    list.append(versioned_to_py(py, vv))?;
+                }
+                Ok(list.unbind().into_any())
+            }
+            _ => Err(PyRuntimeError::new_err(
+                "Unexpected output for EventGetByType",
+            )),
         }
-        Ok(list.unbind().into_any())
     }
 
     // =========================================================================
@@ -903,7 +952,12 @@ impl PyStrata {
                         "lte" => FilterOp::Lte,
                         "in" => FilterOp::In,
                         "contains" => FilterOp::Contains,
-                        _ => return Err(PyValueError::new_err(format!("Invalid filter op: {}", op_str))),
+                        _ => {
+                            return Err(PyValueError::new_err(format!(
+                                "Invalid filter op: {}",
+                                op_str
+                            )))
+                        }
                     };
                     let value_obj = dict
                         .get_item("value")?
@@ -916,21 +970,37 @@ impl PyStrata {
             None => None,
         };
 
-        let matches = self
+        match self
             .inner
-            .vector_search_filtered(collection, vec, k, filter_vec, metric_enum)
-            .map_err(to_py_err)?;
-        let list = PyList::empty_bound(py);
-        for m in matches {
-            let dict = PyDict::new_bound(py);
-            dict.set_item("key", m.key)?;
-            dict.set_item("score", m.score)?;
-            if let Some(meta) = m.metadata {
-                dict.set_item("metadata", value_to_py(py, meta))?;
+            .executor()
+            .execute(Command::VectorSearch {
+                branch: None,
+                space: None,
+                collection: collection.to_string(),
+                query: vec,
+                k,
+                filter: filter_vec,
+                metric: metric_enum,
+            })
+            .map_err(to_py_err)?
+        {
+            Output::VectorMatches(matches) => {
+                let list = PyList::empty_bound(py);
+                for m in matches {
+                    let dict = PyDict::new_bound(py);
+                    dict.set_item("key", m.key)?;
+                    dict.set_item("score", m.score)?;
+                    if let Some(meta) = m.metadata {
+                        dict.set_item("metadata", value_to_py(py, meta))?;
+                    }
+                    list.append(dict)?;
+                }
+                Ok(list.unbind().into_any())
             }
-            list.append(dict)?;
+            _ => Err(PyRuntimeError::new_err(
+                "Unexpected output for VectorSearch",
+            )),
         }
-        Ok(list.unbind().into_any())
     }
 
     // =========================================================================
@@ -941,12 +1011,34 @@ impl PyStrata {
     ///
     /// Spaces are auto-created on first write, but this allows pre-creation.
     fn space_create(&self, space: &str) -> PyResult<()> {
-        self.inner.space_create(space).map_err(to_py_err)
+        match self
+            .inner
+            .executor()
+            .execute(Command::SpaceCreate {
+                branch: None,
+                space: space.to_string(),
+            })
+            .map_err(to_py_err)?
+        {
+            Output::Unit => Ok(()),
+            _ => Err(PyRuntimeError::new_err("Unexpected output for SpaceCreate")),
+        }
     }
 
     /// Check if a space exists in the current branch.
     fn space_exists(&self, space: &str) -> PyResult<bool> {
-        self.inner.space_exists(space).map_err(to_py_err)
+        match self
+            .inner
+            .executor()
+            .execute(Command::SpaceExists {
+                branch: None,
+                space: space.to_string(),
+            })
+            .map_err(to_py_err)?
+        {
+            Output::Bool(exists) => Ok(exists),
+            _ => Err(PyRuntimeError::new_err("Unexpected output for SpaceExists")),
+        }
     }
 
     // =========================================================================
@@ -964,23 +1056,35 @@ impl PyStrata {
         k: Option<u64>,
         primitives: Option<Vec<String>>,
     ) -> PyResult<PyObject> {
-        let results = self
+        match self
             .inner
-            .search(query, k, primitives)
-            .map_err(to_py_err)?;
-        let list = PyList::empty_bound(py);
-        for hit in results {
-            let dict = PyDict::new_bound(py);
-            dict.set_item("entity", hit.entity)?;
-            dict.set_item("primitive", hit.primitive)?;
-            dict.set_item("score", hit.score)?;
-            dict.set_item("rank", hit.rank)?;
-            if let Some(snippet) = hit.snippet {
-                dict.set_item("snippet", snippet)?;
+            .executor()
+            .execute(Command::Search {
+                branch: None,
+                space: None,
+                query: query.to_string(),
+                k,
+                primitives,
+            })
+            .map_err(to_py_err)?
+        {
+            Output::SearchResults(results) => {
+                let list = PyList::empty_bound(py);
+                for hit in results {
+                    let dict = PyDict::new_bound(py);
+                    dict.set_item("entity", hit.entity)?;
+                    dict.set_item("primitive", hit.primitive)?;
+                    dict.set_item("score", hit.score)?;
+                    dict.set_item("rank", hit.rank)?;
+                    if let Some(snippet) = hit.snippet {
+                        dict.set_item("snippet", snippet)?;
+                    }
+                    list.append(dict)?;
+                }
+                Ok(list.unbind().into_any())
             }
-            list.append(dict)?;
+            _ => Err(PyRuntimeError::new_err("Unexpected output for Search")),
         }
-        Ok(list.unbind().into_any())
     }
 }
 
