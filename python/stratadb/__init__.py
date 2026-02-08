@@ -36,9 +36,6 @@ Example usage::
     snapshot = db.at(datetime(2024, 6, 15, 12, 0))
     snapshot.kv.get("user:123")         # reads value as of that timestamp
 
-    # Legacy flat API still works
-    db.kv_put("key", "value")
-
 Limitations:
     - **Bytes roundtrip via bundles:** ``Value.Bytes`` (Python ``bytes``) stored in
       the database will survive normal get/put operations, but a bundle
@@ -507,12 +504,12 @@ class Transaction:
     Usage::
 
         with db.transaction() as txn:
-            db.kv_put("key1", "value1")
-            db.kv_put("key2", "value2")
+            db.kv.put("key1", "value1")
+            db.kv.put("key2", "value2")
         # Auto-commit on exit
 
         with db.transaction(read_only=True):
-            value = db.kv_get("key1")
+            value = db.kv.get("key1")
         # Read-only transaction
     """
 
@@ -565,16 +562,27 @@ class Strata:
     (``db.kv``, ``db.state``, ``db.events``, ``db.json``, ``db.vectors``,
     ``db.branches``, ``db.spaces``), properties, context managers, and
     time-travel support.
-
-    All legacy flat methods (``db.kv_put()``, etc.) still work.
     """
 
     def __init__(self, _inner):
         # _inner is a native _Strata instance
         object.__setattr__(self, "_inner", _inner)
 
+    _NAMESPACE_HINTS = {
+        "kv_": "db.kv",
+        "state_": "db.state",
+        "event_": "db.events",
+        "json_": "db.json",
+        "vector_": "db.vectors",
+    }
+
     def __getattr__(self, name):
-        # Delegate any attribute not found on Strata to the native _Strata
+        for prefix, ns in self._NAMESPACE_HINTS.items():
+            if name.startswith(prefix):
+                raise AttributeError(
+                    f"Strata.{name}() has been removed. "
+                    f"Use the namespace API instead: {ns}"
+                )
         return getattr(self._inner, name)
 
     # -- Construction (static) ------------------------------------------------
