@@ -357,9 +357,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.180"
+version = "0.2.181"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bcc35a38544a891a5f7c865aca548a982ccb3b8650a5b06d0fd33a10283c56fc"
+checksum = "459427e2af2b9c839b132acb702a1c654d95e10f8c326bfc2ad11310e458b1c5"
 
 [[package]]
 name = "libredox"
@@ -847,7 +847,7 @@ checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
 [[package]]
 name = "strata-concurrency"
 version = "0.5.1"
-source = "git+https://github.com/stratadb-labs/strata-core?branch=main#1bfbc7a9ac79dbfb0e125e5435ec51ab65c2fdc2"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#fae049e7ac2afed829e99cfd25b5152b927a67f4"
 dependencies = [
  "chrono",
  "dashmap",
@@ -864,7 +864,7 @@ dependencies = [
 [[package]]
 name = "strata-core"
 version = "0.5.1"
-source = "git+https://github.com/stratadb-labs/strata-core?branch=main#1bfbc7a9ac79dbfb0e125e5435ec51ab65c2fdc2"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#fae049e7ac2afed829e99cfd25b5152b927a67f4"
 dependencies = [
  "bincode",
  "chrono",
@@ -877,7 +877,7 @@ dependencies = [
 [[package]]
 name = "strata-durability"
 version = "0.5.1"
-source = "git+https://github.com/stratadb-labs/strata-core?branch=main#1bfbc7a9ac79dbfb0e125e5435ec51ab65c2fdc2"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#fae049e7ac2afed829e99cfd25b5152b927a67f4"
 dependencies = [
  "crc32fast",
  "parking_lot",
@@ -896,7 +896,7 @@ dependencies = [
 [[package]]
 name = "strata-engine"
 version = "0.5.1"
-source = "git+https://github.com/stratadb-labs/strata-core?branch=main#1bfbc7a9ac79dbfb0e125e5435ec51ab65c2fdc2"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#fae049e7ac2afed829e99cfd25b5152b927a67f4"
 dependencies = [
  "base64 0.21.7",
  "byteorder",
@@ -921,7 +921,7 @@ dependencies = [
 [[package]]
 name = "strata-executor"
 version = "0.5.1"
-source = "git+https://github.com/stratadb-labs/strata-core?branch=main#1bfbc7a9ac79dbfb0e125e5435ec51ab65c2fdc2"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#fae049e7ac2afed829e99cfd25b5152b927a67f4"
 dependencies = [
  "base64 0.21.7",
  "chrono",
@@ -940,7 +940,7 @@ dependencies = [
 [[package]]
 name = "strata-intelligence"
 version = "0.5.1"
-source = "git+https://github.com/stratadb-labs/strata-core?branch=main#1bfbc7a9ac79dbfb0e125e5435ec51ab65c2fdc2"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#fae049e7ac2afed829e99cfd25b5152b927a67f4"
 dependencies = [
  "dashmap",
  "once_cell",
@@ -957,7 +957,7 @@ dependencies = [
 [[package]]
 name = "strata-security"
 version = "0.5.1"
-source = "git+https://github.com/stratadb-labs/strata-core?branch=main#1bfbc7a9ac79dbfb0e125e5435ec51ab65c2fdc2"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#fae049e7ac2afed829e99cfd25b5152b927a67f4"
 dependencies = [
  "serde",
 ]
@@ -965,7 +965,7 @@ dependencies = [
 [[package]]
 name = "strata-storage"
 version = "0.5.1"
-source = "git+https://github.com/stratadb-labs/strata-core?branch=main#1bfbc7a9ac79dbfb0e125e5435ec51ab65c2fdc2"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#fae049e7ac2afed829e99cfd25b5152b927a67f4"
 dependencies = [
  "dashmap",
  "rustc-hash",
@@ -976,7 +976,7 @@ dependencies = [
 [[package]]
 name = "stratadb"
 version = "0.5.1"
-source = "git+https://github.com/stratadb-labs/strata-core?branch=main#1bfbc7a9ac79dbfb0e125e5435ec51ab65c2fdc2"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#fae049e7ac2afed829e99cfd25b5152b927a67f4"
 dependencies = [
  "serde_json",
  "strata-executor",
@@ -986,7 +986,7 @@ dependencies = [
 
 [[package]]
 name = "stratadb-python"
-version = "0.6.0"
+version = "0.12.5"
 dependencies = [
  "numpy",
  "pyo3",

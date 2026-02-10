@@ -449,6 +449,36 @@ class TestTimeTravel:
         assert result["key"] == "vk"
         assert "embedding" in result
 
+    def test_state_get_versioned_as_of_roundtrip(self, db):
+        """state.get with as_of using timestamp from get_versioned works."""
+        db.state.set("tt_sv", "v1")
+        vv = db.state.get_versioned("tt_sv")
+        ts = vv["timestamp"]
+        db.state.set("tt_sv", "v2")
+
+        assert db.state.get("tt_sv") == "v2"
+        assert db.state.get("tt_sv", as_of=ts) == "v1"
+
+    def test_json_get_versioned_as_of_roundtrip(self, db):
+        """json.get with as_of using timestamp from get_versioned works."""
+        db.json.set("tt_jv", "$", {"v": 1})
+        vv = db.json.get_versioned("tt_jv")
+        ts = vv["timestamp"]
+        db.json.set("tt_jv", "$", {"v": 2})
+
+        assert db.json.get("tt_jv", "$")["v"] == 2
+        assert db.json.get("tt_jv", "$", as_of=ts)["v"] == 1
+
+    def test_kv_get_versioned_as_of_roundtrip(self, db):
+        """kv.get with as_of using timestamp from get_versioned works."""
+        db.kv.put("tt_kvv", "v1")
+        vv = db.kv.get_versioned("tt_kvv")
+        ts = vv["timestamp"]
+        db.kv.put("tt_kvv", "v2")
+
+        assert db.kv.get("tt_kvv") == "v2"
+        assert db.kv.get("tt_kvv", as_of=ts) == "v1"
+
     def test_time_range(self, db):
         """time_range returns valid oldest and latest timestamps."""
         db.kv.put("tr_key", "value")

@@ -4,7 +4,7 @@ version = "0.12.5"
 edition = "2021"
 description = "Python bindings for StrataDB"
 license = "MIT"
-repository = "https://github.com/stratadb-labs/strata-python"
+repository = "https://github.com/strata-ai-labs/strata-python"
 
 [lib]
 name = "_stratadb"
@@ -19,11 +19,11 @@ pyo3 = { version = "0.22", features = ["extension-module"] }
 numpy = "0.22"
 
 # Use git dependency for development, switch to crates.io version on release
-stratadb = { git = "https://github.com/stratadb-labs/strata-core", branch = "main" }
+stratadb = { git = "https://github.com/strata-ai-labs/strata-core", branch = "main" }
 # stratadb = "0.5"  # Uncomment when published to crates.io
 
 # Intelligence crate for model download (embed feature only)
-strata-intelligence = { git = "https://github.com/stratadb-labs/strata-core", branch = "main", features = ["embed"], optional = true }
+strata-intelligence = { git = "https://github.com/strata-ai-labs/strata-core", branch = "main", features = ["embed"], optional = true }
 
 [build-dependencies]
 pyo3-build-config = "0.22"
