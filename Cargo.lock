@@ -369,7 +369,7 @@ checksum = "3d0b95e02c851351f877147b7deea7b1afb1df71b63aa5f8270716e0c5720616"
 dependencies = [
  "bitflags",
  "libc",
- "redox_syscall 0.7.0",
+ "redox_syscall 0.7.1",
 ]
 
 [[package]]
@@ -651,9 +651,9 @@ dependencies = [
 
 [[package]]
 name = "redox_syscall"
-version = "0.7.0"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49f3fe0889e69e2ae9e41f4d6c4c0181701d00e4697b356fb1f74173a5e0ee27"
+checksum = "35985aa610addc02e24fc232012c86fd11f14111180f902b67e2d5331f8ebf2b"
 dependencies = [
  "bitflags",
 ]
@@ -847,7 +847,7 @@ checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
 [[package]]
 name = "strata-concurrency"
 version = "0.5.1"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#13399b1afdd5a56659c6430d7b76eabe85a1f3f4"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#882c02c7e355be9b3d95d080094761f0f963a24d"
 dependencies = [
  "chrono",
  "dashmap",
@@ -864,7 +864,7 @@ dependencies = [
 [[package]]
 name = "strata-core"
 version = "0.5.1"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#13399b1afdd5a56659c6430d7b76eabe85a1f3f4"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#882c02c7e355be9b3d95d080094761f0f963a24d"
 dependencies = [
  "bincode",
  "chrono",
@@ -877,7 +877,7 @@ dependencies = [
 [[package]]
 name = "strata-durability"
 version = "0.5.1"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#13399b1afdd5a56659c6430d7b76eabe85a1f3f4"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#882c02c7e355be9b3d95d080094761f0f963a24d"
 dependencies = [
  "crc32fast",
  "parking_lot",
@@ -896,7 +896,7 @@ dependencies = [
 [[package]]
 name = "strata-engine"
 version = "0.5.1"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#13399b1afdd5a56659c6430d7b76eabe85a1f3f4"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#882c02c7e355be9b3d95d080094761f0f963a24d"
 dependencies = [
  "base64 0.21.7",
  "byteorder",
@@ -921,7 +921,7 @@ dependencies = [
 [[package]]
 name = "strata-executor"
 version = "0.5.1"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#13399b1afdd5a56659c6430d7b76eabe85a1f3f4"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#882c02c7e355be9b3d95d080094761f0f963a24d"
 dependencies = [
  "base64 0.21.7",
  "chrono",
@@ -940,7 +940,7 @@ dependencies = [
 [[package]]
 name = "strata-intelligence"
 version = "0.5.1"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#13399b1afdd5a56659c6430d7b76eabe85a1f3f4"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#882c02c7e355be9b3d95d080094761f0f963a24d"
 dependencies = [
  "dashmap",
  "once_cell",
@@ -957,7 +957,7 @@ dependencies = [
 [[package]]
 name = "strata-security"
 version = "0.5.1"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#13399b1afdd5a56659c6430d7b76eabe85a1f3f4"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#882c02c7e355be9b3d95d080094761f0f963a24d"
 dependencies = [
  "serde",
 ]
@@ -965,7 +965,7 @@ dependencies = [
 [[package]]
 name = "strata-storage"
 version = "0.5.1"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#13399b1afdd5a56659c6430d7b76eabe85a1f3f4"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#882c02c7e355be9b3d95d080094761f0f963a24d"
 dependencies = [
  "dashmap",
  "rustc-hash",
@@ -976,7 +976,7 @@ dependencies = [
 [[package]]
 name = "stratadb"
 version = "0.5.1"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#13399b1afdd5a56659c6430d7b76eabe85a1f3f4"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#882c02c7e355be9b3d95d080094761f0f963a24d"
 dependencies = [
  "serde_json",
  "strata-executor",
@@ -986,7 +986,7 @@ dependencies = [
 
 [[package]]
 name = "stratadb-python"
-version = "0.12.5"
+version = "0.12.7"
 dependencies = [
  "numpy",
  "pyo3",
@@ -1003,9 +1003,9 @@ checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 
 [[package]]
 name = "syn"
-version = "2.0.114"
+version = "2.0.115"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d4d107df263a3013ef9b1879b0df87d706ff80f65a86ea879bd9c31f9b307c2a"
+checksum = "6e614ed320ac28113fa64972c4262d5dbc89deacdfd00c34a3e4cea073243c12"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1470,9 +1470,9 @@ checksum = "b97154e67e32c85465826e8bcc1c59429aaaf107c1e4a9e53c8d8ccd5eff88d0"
 
 [[package]]
 name = "zmij"
-version = "1.0.20"
+version = "1.0.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4de98dfa5d5b7fef4ee834d0073d560c9ca7b6c46a71d058c48db7960f8cfaf7"
+checksum = "b8848ee67ecc8aedbaf3e4122217aff892639231befc6a1b58d29fff4c2cabaa"
 
 [[package]]
 name = "zstd"
