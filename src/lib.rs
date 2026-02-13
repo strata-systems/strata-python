@@ -1501,16 +1501,19 @@ impl PyStrata {
             rerank,
         };
 
-        match self
-            .inner
-            .executor()
-            .execute(Command::Search {
-                branch: None,
-                space: None,
-                search: sq,
-            })
-            .map_err(to_py_err)?
-        {
+        let cmd = Command::Search {
+            branch: None,
+            space: None,
+            search: sq,
+        };
+
+        // Clone executor ref before releasing GIL
+        let executor = self.inner.executor();
+
+        // Release GIL during Rust execution to allow parallel Python threads
+        let result = py.allow_threads(|| executor.execute(cmd)).map_err(to_py_err)?;
+
+        match result {
             Output::SearchResults(results) => {
                 let list = PyList::empty_bound(py);
                 for hit in results {

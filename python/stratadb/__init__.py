@@ -870,4 +870,4 @@ __all__ = [
     "AccessDeniedError",
     "IoError",
 ]
-__version__ = "0.6.0"
+__version__ = "0.13.2"
