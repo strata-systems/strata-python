@@ -167,9 +167,10 @@ impl PyStrata {
     ///     path: Directory path for the database.
     ///     auto_embed: Enable automatic text embedding for semantic search.
     ///     read_only: Open in read-only mode.
+    ///     embed_batch_size: Number of texts to batch for embedding (default 64).
     #[staticmethod]
-    #[pyo3(signature = (path, auto_embed=false, read_only=false))]
-    fn open(py: Python<'_>, path: &str, auto_embed: bool, read_only: bool) -> PyResult<Self> {
+    #[pyo3(signature = (path, auto_embed=false, read_only=false, embed_batch_size=None))]
+    fn open(py: Python<'_>, path: &str, auto_embed: bool, read_only: bool, embed_batch_size: Option<usize>) -> PyResult<Self> {
         // Auto-download model files when auto_embed is requested (best-effort).
         #[cfg(feature = "embed")]
         if auto_embed {
@@ -193,6 +194,9 @@ impl PyStrata {
         }
         if read_only {
             opts = opts.access_mode(AccessMode::ReadOnly);
+        }
+        if let Some(bs) = embed_batch_size {
+            opts = opts.embed_batch_size(bs);
         }
 
         let inner = RustStrata::open_with(path, opts).map_err(to_py_err)?;

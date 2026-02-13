@@ -588,9 +588,9 @@ class Strata:
     # -- Construction (static) ------------------------------------------------
 
     @staticmethod
-    def open(path, auto_embed=False, read_only=False):
+    def open(path, auto_embed=False, read_only=False, embed_batch_size=None):
         """Open a database at the given path."""
-        return Strata(_Strata.open(path, auto_embed=auto_embed, read_only=read_only))
+        return Strata(_Strata.open(path, auto_embed=auto_embed, read_only=read_only, embed_batch_size=embed_batch_size))
 
     @staticmethod
     def cache():

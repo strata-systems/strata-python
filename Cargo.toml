@@ -1,6 +1,6 @@
 [package]
 name = "stratadb-python"
-version = "0.12.11"
+version = "0.13.0"
 edition = "2021"
 description = "Python bindings for StrataDB"
 license = "MIT"
@@ -13,6 +13,7 @@ crate-type = ["cdylib"]
 [features]
 default = ["embed"]
 embed = ["stratadb/embed", "dep:strata-intelligence"]
+embed-cuda = ["embed", "stratadb/embed-cuda", "strata-intelligence/embed-cuda"]
 
 [dependencies]
 pyo3 = { version = "0.22", features = ["extension-module"] }
@@ -27,3 +28,15 @@ strata-intelligence = { git = "https://github.com/strata-ai-labs/strata-core", b
 
 [build-dependencies]
 pyo3-build-config = "0.22"
+
+# Local overrides for development — point at local strata-core checkout
+[patch."https://github.com/strata-ai-labs/strata-core"]
+stratadb = { path = "/home/anibjoshi/Documents/GitHub/strata-core" }
+strata-intelligence = { path = "/home/anibjoshi/Documents/GitHub/strata-core/crates/intelligence" }
+strata-engine = { path = "/home/anibjoshi/Documents/GitHub/strata-core/crates/engine" }
+strata-executor = { path = "/home/anibjoshi/Documents/GitHub/strata-core/crates/executor" }
+strata-core = { path = "/home/anibjoshi/Documents/GitHub/strata-core/crates/core" }
+strata-storage = { path = "/home/anibjoshi/Documents/GitHub/strata-core/crates/storage" }
+strata-concurrency = { path = "/home/anibjoshi/Documents/GitHub/strata-core/crates/concurrency" }
+strata-durability = { path = "/home/anibjoshi/Documents/GitHub/strata-core/crates/durability" }
+strata-security = { path = "/home/anibjoshi/Documents/GitHub/strata-core/crates/security" }
