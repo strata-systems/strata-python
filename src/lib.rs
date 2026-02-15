@@ -1415,6 +1415,24 @@ impl PyStrata {
         Ok(dict.unbind().into_any())
     }
 
+    /// Get embedding pipeline status.
+    ///
+    /// Returns a dict with auto_embed, batch_size, pending, total_queued,
+    /// total_embedded, total_failed, scheduler_queue_depth, scheduler_active_tasks.
+    fn embed_status(&self, py: Python<'_>) -> PyResult<PyObject> {
+        let info = self.inner.embed_status().map_err(to_py_err)?;
+        let dict = PyDict::new_bound(py);
+        dict.set_item("auto_embed", info.auto_embed)?;
+        dict.set_item("batch_size", info.batch_size)?;
+        dict.set_item("pending", info.pending)?;
+        dict.set_item("total_queued", info.total_queued)?;
+        dict.set_item("total_embedded", info.total_embedded)?;
+        dict.set_item("total_failed", info.total_failed)?;
+        dict.set_item("scheduler_queue_depth", info.scheduler_queue_depth)?;
+        dict.set_item("scheduler_active_tasks", info.scheduler_active_tasks)?;
+        Ok(dict.unbind().into_any())
+    }
+
     /// Check whether auto-embedding is enabled.
     fn auto_embed_enabled(&self) -> bool {
         self.inner.auto_embed_enabled()

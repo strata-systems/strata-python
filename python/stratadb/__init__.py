@@ -613,6 +613,21 @@ class Strata:
         """
         return self._inner.config()
 
+    def embed_status(self):
+        """Return embedding pipeline status.
+
+        Returns a dict with:
+        - ``auto_embed``: whether auto-embedding is enabled
+        - ``batch_size``: configured embedding batch size
+        - ``pending``: items currently in the buffer
+        - ``total_queued``: cumulative items pushed
+        - ``total_embedded``: cumulative items successfully embedded
+        - ``total_failed``: cumulative items that failed
+        - ``scheduler_queue_depth``: tasks waiting in scheduler
+        - ``scheduler_active_tasks``: tasks currently running
+        """
+        return self._inner.embed_status()
+
     @property
     def auto_embed_enabled(self):
         """Whether automatic text embedding is currently enabled (read-only)."""
