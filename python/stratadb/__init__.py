@@ -657,21 +657,6 @@ class Strata:
         """
         return self._inner.config()
 
-    def embed_status(self):
-        """Return embedding pipeline status.
-
-        Returns a dict with:
-        - ``auto_embed``: whether auto-embedding is enabled
-        - ``batch_size``: configured embedding batch size
-        - ``pending``: items currently in the buffer
-        - ``total_queued``: cumulative items pushed
-        - ``total_embedded``: cumulative items successfully embedded
-        - ``total_failed``: cumulative items that failed
-        - ``scheduler_queue_depth``: tasks waiting in scheduler
-        - ``scheduler_active_tasks``: tasks currently running
-        """
-        return self._inner.embed_status()
-
     @property
     def auto_embed_enabled(self):
         """Whether automatic text embedding is currently enabled (read-only)."""
@@ -753,6 +738,137 @@ class Strata:
             query, k=k, primitives=primitives, time_range=time_range,
             mode=mode, expand=expand, rerank=rerank,
         )
+
+    # -- Embedding ------------------------------------------------------------
+
+    def embed(self, text):
+        """Embed a single text string into a vector.
+
+        Requires auto-embed to be enabled.
+
+        Args:
+            text: The text to embed.
+
+        Returns:
+            A numpy array of float32 values.
+        """
+        return self._inner.embed(text)
+
+    def embed_batch(self, texts):
+        """Embed multiple texts into vectors.
+
+        Requires auto-embed to be enabled.
+
+        Args:
+            texts: List of text strings to embed.
+
+        Returns:
+            List of numpy arrays.
+        """
+        return self._inner.embed_batch(texts)
+
+    # -- Inference ------------------------------------------------------------
+
+    def generate(self, model, prompt, *, max_tokens=None, temperature=None,
+                 top_k=None, top_p=None, seed=None, stop_tokens=None):
+        """Generate text using a loaded model.
+
+        Args:
+            model: Model name (e.g. ``"qwen3:1.7b"``).
+            prompt: The prompt to generate from.
+            max_tokens: Maximum number of tokens to generate.
+            temperature: Sampling temperature (0.0 = greedy).
+            top_k: Top-k sampling parameter.
+            top_p: Top-p (nucleus) sampling parameter.
+            seed: Random seed for reproducibility.
+            stop_tokens: Token IDs that stop generation.
+
+        Returns:
+            A dict with ``"text"``, ``"stop_reason"``, ``"prompt_tokens"``,
+            ``"completion_tokens"``, ``"model"``.
+        """
+        return self._inner.generate(
+            model, prompt, max_tokens=max_tokens, temperature=temperature,
+            top_k=top_k, top_p=top_p, seed=seed, stop_tokens=stop_tokens,
+        )
+
+    def tokenize(self, model, text, *, add_special_tokens=None):
+        """Tokenize text into token IDs.
+
+        Args:
+            model: Model name whose tokenizer to use.
+            text: Text to tokenize.
+            add_special_tokens: Whether to add special tokens (default: ``True``).
+
+        Returns:
+            A dict with ``"ids"`` (list of ints), ``"count"`` (int), ``"model"`` (str).
+        """
+        return self._inner.tokenize(model, text, add_special_tokens=add_special_tokens)
+
+    def detokenize(self, model, ids):
+        """Convert token IDs back to text.
+
+        Args:
+            model: Model name whose tokenizer to use.
+            ids: List of token IDs.
+
+        Returns:
+            The decoded text string.
+        """
+        return self._inner.detokenize(model, ids)
+
+    def generate_unload(self, model):
+        """Unload a model from memory.
+
+        Args:
+            model: Model name to unload.
+
+        Returns:
+            ``True`` if the model was loaded and is now unloaded.
+        """
+        return self._inner.generate_unload(model)
+
+    # -- Model Management -----------------------------------------------------
+
+    def models_list(self):
+        """List available models from the registry.
+
+        Returns:
+            List of dicts with ``"name"``, ``"task"``, ``"architecture"``,
+            ``"default_quant"``, ``"embedding_dim"``, ``"is_local"``, ``"size_bytes"``.
+        """
+        return self._inner.models_list()
+
+    def models_pull(self, name):
+        """Download a model by name.
+
+        Args:
+            name: Model name to download.
+
+        Returns:
+            A dict with ``"name"`` and ``"path"``.
+        """
+        return self._inner.models_pull(name)
+
+    def models_local(self):
+        """List locally downloaded models.
+
+        Returns:
+            List of dicts with ``"name"``, ``"task"``, ``"architecture"``,
+            ``"default_quant"``, ``"embedding_dim"``, ``"is_local"``, ``"size_bytes"``.
+        """
+        return self._inner.models_local()
+
+    # -- Durability -----------------------------------------------------------
+
+    def durability_counters(self):
+        """Get WAL durability counters.
+
+        Returns:
+            A dict with ``"wal_appends"``, ``"sync_calls"``, ``"bytes_written"``,
+            ``"sync_nanos"``.
+        """
+        return self._inner.durability_counters()
 
     # -- Properties -----------------------------------------------------------
 

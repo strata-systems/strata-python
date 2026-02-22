@@ -75,6 +75,7 @@ class Strata:
         path: str,
         auto_embed: bool = False,
         read_only: bool = False,
+        embed_batch_size: Optional[int] = None,
     ) -> "Strata":
         """Open a database at the given path.
 
@@ -82,6 +83,7 @@ class Strata:
             path: Directory path for the database.
             auto_embed: Enable automatic text embedding for semantic search.
             read_only: Open in read-only mode.
+            embed_batch_size: Number of texts to batch for embedding (default 64).
         """
         ...
 
@@ -110,6 +112,15 @@ class Strata:
 
         Returns a dict with ``"durability"``, ``"auto_embed"``, and
         ``"model"`` (a dict or ``None``).
+        """
+        ...
+
+    def embed_status(self) -> dict[str, Any]:
+        """Get embedding pipeline status.
+
+        Returns a dict with ``auto_embed``, ``batch_size``, ``pending``,
+        ``total_queued``, ``total_embedded``, ``total_failed``,
+        ``scheduler_queue_depth``, ``scheduler_active_tasks``, ``is_idle``.
         """
         ...
 
@@ -689,6 +700,99 @@ class Strata:
 
         Returns ``{"oldest_ts", "latest_ts"}`` where values are microseconds
         since epoch, or ``None`` if the branch has no data.
+        """
+        ...
+
+    # -- Embedding ------------------------------------------------------------
+
+    def embed(self, text: str) -> npt.NDArray[np.float32]:
+        """Embed a single text string into a vector.
+
+        Returns a numpy array of float32 values.
+        """
+        ...
+
+    def embed_batch(self, texts: list[str]) -> list[npt.NDArray[np.float32]]:
+        """Embed multiple texts into vectors.
+
+        Returns a list of numpy arrays.
+        """
+        ...
+
+    # -- Inference ------------------------------------------------------------
+
+    def generate(
+        self,
+        model: str,
+        prompt: str,
+        max_tokens: Optional[int] = None,
+        temperature: Optional[float] = None,
+        top_k: Optional[int] = None,
+        top_p: Optional[float] = None,
+        seed: Optional[int] = None,
+        stop_tokens: Optional[list[int]] = None,
+    ) -> dict[str, Any]:
+        """Generate text using a loaded model.
+
+        Returns ``{"text", "stop_reason", "prompt_tokens",
+        "completion_tokens", "model"}``.
+        """
+        ...
+
+    def tokenize(
+        self,
+        model: str,
+        text: str,
+        add_special_tokens: Optional[bool] = None,
+    ) -> dict[str, Any]:
+        """Tokenize text into token IDs.
+
+        Returns ``{"ids", "count", "model"}``.
+        """
+        ...
+
+    def detokenize(self, model: str, ids: list[int]) -> str:
+        """Convert token IDs back to text."""
+        ...
+
+    def generate_unload(self, model: str) -> bool:
+        """Unload a model from memory.
+
+        Returns ``True`` if the model was loaded and is now unloaded.
+        """
+        ...
+
+    # -- Model Management -----------------------------------------------------
+
+    def models_list(self) -> list[dict[str, Any]]:
+        """List available models from the registry.
+
+        Each dict contains ``name``, ``task``, ``architecture``,
+        ``default_quant``, ``embedding_dim``, ``is_local``, ``size_bytes``.
+        """
+        ...
+
+    def models_pull(self, name: str) -> dict[str, Any]:
+        """Download a model by name.
+
+        Returns ``{"name", "path"}``.
+        """
+        ...
+
+    def models_local(self) -> list[dict[str, Any]]:
+        """List locally downloaded models.
+
+        Each dict contains ``name``, ``task``, ``architecture``,
+        ``default_quant``, ``embedding_dim``, ``is_local``, ``size_bytes``.
+        """
+        ...
+
+    # -- Durability -----------------------------------------------------------
+
+    def durability_counters(self) -> dict[str, Any]:
+        """Get WAL durability counters.
+
+        Returns ``{"wal_appends", "sync_calls", "bytes_written", "sync_nanos"}``.
         """
         ...
 

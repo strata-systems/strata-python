@@ -12,9 +12,10 @@ use std::sync::Mutex;
 use ::stratadb::{
     AccessMode, BatchEventEntry, BatchItemResult, BatchJsonEntry, BatchKvEntry, BatchStateEntry,
     BatchVectorEntry, BranchExportResult, BranchImportResult, BundleValidateResult,
-    CollectionInfo, Command, DistanceMetric, Error as StrataError, FilterOp, MergeStrategy,
-    MetadataFilter, OpenOptions, Output, SearchQuery, Session, Strata as RustStrata,
-    TimeRangeInput, Value, VersionedBranchInfo, VersionedValue,
+    CollectionInfo, Command, DistanceMetric, Error as StrataError, FilterOp, GenerationResult,
+    MergeStrategy, MetadataFilter, ModelInfoOutput, OpenOptions, Output, SearchQuery, Session,
+    Strata as RustStrata, TimeRangeInput, TokenizeResult, Value, VersionedBranchInfo,
+    VersionedValue, WalCounters,
 };
 
 // =============================================================================
@@ -1577,7 +1578,7 @@ impl PyStrata {
     ///
     /// Returns a dict with 'durability', 'auto_embed', and optional 'model'.
     fn config(&self, py: Python<'_>) -> PyResult<PyObject> {
-        let cfg = self.inner.config();
+        let cfg = self.inner.config().map_err(to_py_err)?;
         let dict = PyDict::new_bound(py);
         dict.set_item("durability", &cfg.durability)?;
         dict.set_item("auto_embed", cfg.auto_embed)?;
@@ -1595,36 +1596,6 @@ impl PyStrata {
             dict.set_item("model", py.None())?;
         }
         Ok(dict.unbind().into_any())
-    }
-
-    /// Get embedding pipeline status.
-    ///
-    /// Returns a dict with auto_embed, batch_size, pending, total_queued,
-    /// total_embedded, total_failed, scheduler_queue_depth, scheduler_active_tasks.
-    fn embed_status(&self, py: Python<'_>) -> PyResult<PyObject> {
-        let info = self.inner.embed_status().map_err(to_py_err)?;
-        let dict = PyDict::new_bound(py);
-        dict.set_item("auto_embed", info.auto_embed)?;
-        dict.set_item("batch_size", info.batch_size)?;
-        dict.set_item("pending", info.pending)?;
-        dict.set_item("total_queued", info.total_queued)?;
-        dict.set_item("total_embedded", info.total_embedded)?;
-        dict.set_item("total_failed", info.total_failed)?;
-        dict.set_item("scheduler_queue_depth", info.scheduler_queue_depth)?;
-        dict.set_item("scheduler_active_tasks", info.scheduler_active_tasks)?;
-        Ok(dict.unbind().into_any())
-    }
-
-    /// Check whether auto-embedding is enabled.
-    fn auto_embed_enabled(&self) -> bool {
-        self.inner.auto_embed_enabled()
-    }
-
-    /// Enable or disable auto-embedding of text values.
-    ///
-    /// Persisted to strata.toml for disk-backed databases.
-    fn set_auto_embed(&self, enabled: bool) -> PyResult<()> {
-        self.inner.set_auto_embed(enabled).map_err(to_py_err)
     }
 
     /// Get a snapshot of the embedding pipeline status.
@@ -1651,6 +1622,18 @@ impl PyStrata {
             && info.scheduler_active_tasks == 0
             && info.scheduler_queue_depth == 0)?;
         Ok(dict.unbind().into_any())
+    }
+
+    /// Check whether auto-embedding is enabled.
+    fn auto_embed_enabled(&self) -> PyResult<bool> {
+        self.inner.auto_embed_enabled().map_err(to_py_err)
+    }
+
+    /// Enable or disable auto-embedding of text values.
+    ///
+    /// Persisted to strata.toml for disk-backed databases.
+    fn set_auto_embed(&self, enabled: bool) -> PyResult<()> {
+        self.inner.set_auto_embed(enabled).map_err(to_py_err)
     }
 
     /// Configure an inference model endpoint for intelligent search.
@@ -1788,6 +1771,254 @@ impl PyStrata {
     }
 
     // =========================================================================
+    // Embedding
+    // =========================================================================
+
+    /// Embed a single text string into a vector.
+    ///
+    /// Returns a numpy array of float32 values.
+    fn embed(&self, py: Python<'_>, text: &str) -> PyResult<PyObject> {
+        match self
+            .inner
+            .executor()
+            .execute(Command::Embed {
+                text: text.to_string(),
+            })
+            .map_err(to_py_err)?
+        {
+            Output::Embedding(vec) => {
+                let arr = PyArray1::from_vec_bound(py, vec);
+                Ok(arr.unbind().into_any())
+            }
+            _ => Err(PyRuntimeError::new_err("Unexpected output for Embed")),
+        }
+    }
+
+    /// Embed multiple texts into vectors.
+    ///
+    /// Returns a list of numpy arrays.
+    fn embed_batch(&self, py: Python<'_>, texts: Vec<String>) -> PyResult<PyObject> {
+        match self
+            .inner
+            .executor()
+            .execute(Command::EmbedBatch { texts })
+            .map_err(to_py_err)?
+        {
+            Output::Embeddings(vecs) => {
+                let list = PyList::empty_bound(py);
+                for vec in vecs {
+                    let arr = PyArray1::from_vec_bound(py, vec);
+                    list.append(arr)?;
+                }
+                Ok(list.unbind().into_any())
+            }
+            _ => Err(PyRuntimeError::new_err("Unexpected output for EmbedBatch")),
+        }
+    }
+
+    // =========================================================================
+    // Text Generation
+    // =========================================================================
+
+    /// Generate text using a loaded model.
+    ///
+    /// Args:
+    ///     model: Model name (e.g. "qwen3:1.7b").
+    ///     prompt: The prompt to generate from.
+    ///     max_tokens: Maximum number of tokens to generate.
+    ///     temperature: Sampling temperature (0.0 = greedy).
+    ///     top_k: Top-k sampling parameter.
+    ///     top_p: Top-p (nucleus) sampling parameter.
+    ///     seed: Random seed for reproducibility.
+    ///     stop_tokens: Token IDs that stop generation.
+    ///
+    /// Returns a dict with 'text', 'stop_reason', 'prompt_tokens',
+    /// 'completion_tokens', 'model'.
+    #[pyo3(signature = (model, prompt, max_tokens=None, temperature=None, top_k=None, top_p=None, seed=None, stop_tokens=None))]
+    fn generate(
+        &self,
+        py: Python<'_>,
+        model: &str,
+        prompt: &str,
+        max_tokens: Option<usize>,
+        temperature: Option<f32>,
+        top_k: Option<usize>,
+        top_p: Option<f32>,
+        seed: Option<u64>,
+        stop_tokens: Option<Vec<u32>>,
+    ) -> PyResult<PyObject> {
+        match self
+            .inner
+            .executor()
+            .execute(Command::Generate {
+                model: model.to_string(),
+                prompt: prompt.to_string(),
+                max_tokens,
+                temperature,
+                top_k,
+                top_p,
+                seed,
+                stop_tokens,
+            })
+            .map_err(to_py_err)?
+        {
+            Output::Generated(result) => generation_result_to_py(py, result),
+            _ => Err(PyRuntimeError::new_err("Unexpected output for Generate")),
+        }
+    }
+
+    /// Tokenize text into token IDs.
+    ///
+    /// Args:
+    ///     model: Model name whose tokenizer to use.
+    ///     text: Text to tokenize.
+    ///     add_special_tokens: Whether to add special tokens (default: true).
+    ///
+    /// Returns a dict with 'ids' (list of ints), 'count' (int), 'model' (str).
+    #[pyo3(signature = (model, text, add_special_tokens=None))]
+    fn tokenize(
+        &self,
+        py: Python<'_>,
+        model: &str,
+        text: &str,
+        add_special_tokens: Option<bool>,
+    ) -> PyResult<PyObject> {
+        match self
+            .inner
+            .executor()
+            .execute(Command::Tokenize {
+                model: model.to_string(),
+                text: text.to_string(),
+                add_special_tokens,
+            })
+            .map_err(to_py_err)?
+        {
+            Output::TokenIds(result) => tokenize_result_to_py(py, result),
+            _ => Err(PyRuntimeError::new_err("Unexpected output for Tokenize")),
+        }
+    }
+
+    /// Convert token IDs back to text.
+    ///
+    /// Args:
+    ///     model: Model name whose tokenizer to use.
+    ///     ids: List of token IDs.
+    ///
+    /// Returns the decoded text string.
+    fn detokenize(&self, model: &str, ids: Vec<u32>) -> PyResult<String> {
+        match self
+            .inner
+            .executor()
+            .execute(Command::Detokenize {
+                model: model.to_string(),
+                ids,
+            })
+            .map_err(to_py_err)?
+        {
+            Output::Text(text) => Ok(text),
+            _ => Err(PyRuntimeError::new_err("Unexpected output for Detokenize")),
+        }
+    }
+
+    /// Unload a model from memory.
+    ///
+    /// Returns True if the model was loaded and is now unloaded.
+    fn generate_unload(&self, model: &str) -> PyResult<bool> {
+        match self
+            .inner
+            .executor()
+            .execute(Command::GenerateUnload {
+                model: model.to_string(),
+            })
+            .map_err(to_py_err)?
+        {
+            Output::Bool(unloaded) => Ok(unloaded),
+            _ => Err(PyRuntimeError::new_err(
+                "Unexpected output for GenerateUnload",
+            )),
+        }
+    }
+
+    // =========================================================================
+    // Model Management
+    // =========================================================================
+
+    /// List available models from the registry.
+    ///
+    /// Returns a list of dicts with 'name', 'task', 'architecture',
+    /// 'default_quant', 'embedding_dim', 'is_local', 'size_bytes'.
+    fn models_list(&self, py: Python<'_>) -> PyResult<PyObject> {
+        match self
+            .inner
+            .executor()
+            .execute(Command::ModelsList)
+            .map_err(to_py_err)?
+        {
+            Output::ModelsList(models) => models_list_to_py(py, models),
+            _ => Err(PyRuntimeError::new_err("Unexpected output for ModelsList")),
+        }
+    }
+
+    /// Download a model by name.
+    ///
+    /// Returns a dict with 'name' and 'path'.
+    fn models_pull(&self, py: Python<'_>, name: &str) -> PyResult<PyObject> {
+        match self
+            .inner
+            .executor()
+            .execute(Command::ModelsPull {
+                name: name.to_string(),
+            })
+            .map_err(to_py_err)?
+        {
+            Output::ModelsPulled { name, path } => {
+                let dict = PyDict::new_bound(py);
+                dict.set_item("name", name)?;
+                dict.set_item("path", path)?;
+                Ok(dict.unbind().into_any())
+            }
+            _ => Err(PyRuntimeError::new_err("Unexpected output for ModelsPull")),
+        }
+    }
+
+    /// List locally downloaded models.
+    ///
+    /// Returns a list of dicts with 'name', 'task', 'architecture',
+    /// 'default_quant', 'embedding_dim', 'is_local', 'size_bytes'.
+    fn models_local(&self, py: Python<'_>) -> PyResult<PyObject> {
+        match self
+            .inner
+            .executor()
+            .execute(Command::ModelsLocal)
+            .map_err(to_py_err)?
+        {
+            Output::ModelsList(models) => models_list_to_py(py, models),
+            _ => Err(PyRuntimeError::new_err("Unexpected output for ModelsLocal")),
+        }
+    }
+
+    // =========================================================================
+    // Durability
+    // =========================================================================
+
+    /// Get WAL durability counters.
+    ///
+    /// Returns a dict with 'wal_appends', 'sync_calls', 'bytes_written', 'sync_nanos'.
+    fn durability_counters(&self, py: Python<'_>) -> PyResult<PyObject> {
+        match self
+            .inner
+            .executor()
+            .execute(Command::DurabilityCounters)
+            .map_err(to_py_err)?
+        {
+            Output::DurabilityCounters(counters) => wal_counters_to_py(py, counters),
+            _ => Err(PyRuntimeError::new_err(
+                "Unexpected output for DurabilityCounters",
+            )),
+        }
+    }
+
+    // =========================================================================
     // Retention (#8)
     // =========================================================================
 
@@ -1888,6 +2119,53 @@ fn bundle_validate_result_to_py(py: Python<'_>, r: BundleValidateResult) -> PyRe
     dict.set_item("format_version", r.format_version)?;
     dict.set_item("entry_count", r.entry_count)?;
     dict.set_item("checksums_valid", r.checksums_valid)?;
+    Ok(dict.unbind().into_any())
+}
+
+/// Convert GenerationResult to Python dict.
+fn generation_result_to_py(py: Python<'_>, r: GenerationResult) -> PyResult<PyObject> {
+    let dict = PyDict::new_bound(py);
+    dict.set_item("text", r.text)?;
+    dict.set_item("stop_reason", r.stop_reason)?;
+    dict.set_item("prompt_tokens", r.prompt_tokens)?;
+    dict.set_item("completion_tokens", r.completion_tokens)?;
+    dict.set_item("model", r.model)?;
+    Ok(dict.unbind().into_any())
+}
+
+/// Convert TokenizeResult to Python dict.
+fn tokenize_result_to_py(py: Python<'_>, r: TokenizeResult) -> PyResult<PyObject> {
+    let dict = PyDict::new_bound(py);
+    dict.set_item("ids", r.ids)?;
+    dict.set_item("count", r.count)?;
+    dict.set_item("model", r.model)?;
+    Ok(dict.unbind().into_any())
+}
+
+/// Convert a list of ModelInfoOutput to Python list of dicts.
+fn models_list_to_py(py: Python<'_>, models: Vec<ModelInfoOutput>) -> PyResult<PyObject> {
+    let list = PyList::empty_bound(py);
+    for m in models {
+        let dict = PyDict::new_bound(py);
+        dict.set_item("name", m.name)?;
+        dict.set_item("task", m.task)?;
+        dict.set_item("architecture", m.architecture)?;
+        dict.set_item("default_quant", m.default_quant)?;
+        dict.set_item("embedding_dim", m.embedding_dim)?;
+        dict.set_item("is_local", m.is_local)?;
+        dict.set_item("size_bytes", m.size_bytes)?;
+        list.append(dict)?;
+    }
+    Ok(list.unbind().into_any())
+}
+
+/// Convert WalCounters to Python dict.
+fn wal_counters_to_py(py: Python<'_>, c: WalCounters) -> PyResult<PyObject> {
+    let dict = PyDict::new_bound(py);
+    dict.set_item("wal_appends", c.wal_appends)?;
+    dict.set_item("sync_calls", c.sync_calls)?;
+    dict.set_item("bytes_written", c.bytes_written)?;
+    dict.set_item("sync_nanos", c.sync_nanos)?;
     Ok(dict.unbind().into_any())
 }
 
