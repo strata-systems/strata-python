@@ -20,12 +20,12 @@ pyo3 = { version = "0.22", features = ["extension-module"] }
 numpy = "0.22"
 
 # Use path dependency for local development
-stratadb = { path = "../strata-core" }
-# stratadb = { git = "https://github.com/strata-ai-labs/strata-core", branch = "main" }
+# stratadb = { path = "../strata-core" }
+stratadb = { git = "https://github.com/strata-ai-labs/strata-core", branch = "main" }
 
 # Intelligence crate for model download (embed feature only)
-strata-intelligence = { path = "../strata-core/crates/intelligence", features = ["embed"], optional = true }
-# strata-intelligence = { git = "https://github.com/strata-ai-labs/strata-core", branch = "main", features = ["embed"], optional = true }
+# strata-intelligence = { path = "../strata-core/crates/intelligence", features = ["embed"], optional = true }
+strata-intelligence = { git = "https://github.com/strata-ai-labs/strata-core", branch = "main", features = ["embed"], optional = true }
 
 [build-dependencies]
 pyo3-build-config = "0.22"
