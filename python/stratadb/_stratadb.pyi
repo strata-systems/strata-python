@@ -76,6 +76,7 @@ class Strata:
         auto_embed: bool = False,
         read_only: bool = False,
         embed_batch_size: Optional[int] = None,
+        embed_model: Optional[str] = None,
     ) -> "Strata":
         """Open a database at the given path.
 
@@ -84,6 +85,8 @@ class Strata:
             auto_embed: Enable automatic text embedding for semantic search.
             read_only: Open in read-only mode.
             embed_batch_size: Number of texts to batch for embedding (default 64).
+            embed_model: Embedding model name ("miniLM", "nomic-embed",
+                "bge-m3", "gemma-embed"). Default: "miniLM".
         """
         ...
 
@@ -110,8 +113,8 @@ class Strata:
     def config(self) -> dict[str, Any]:
         """Get the current database configuration.
 
-        Returns a dict with ``"durability"``, ``"auto_embed"``, and
-        ``"model"`` (a dict or ``None``).
+        Returns a dict with ``"durability"``, ``"auto_embed"``,
+        ``"embed_model"``, and ``"model"`` (a dict or ``None``).
         """
         ...
 

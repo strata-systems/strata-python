@@ -170,9 +170,10 @@ impl PyStrata {
     ///     auto_embed: Enable automatic text embedding for semantic search.
     ///     read_only: Open in read-only mode.
     ///     embed_batch_size: Number of texts to batch for embedding (default 64).
+    ///     embed_model: Embedding model name ("miniLM", "nomic-embed", "bge-m3", "gemma-embed").
     #[staticmethod]
-    #[pyo3(signature = (path, auto_embed=false, read_only=false, embed_batch_size=None))]
-    fn open(py: Python<'_>, path: &str, auto_embed: bool, read_only: bool, embed_batch_size: Option<usize>) -> PyResult<Self> {
+    #[pyo3(signature = (path, auto_embed=false, read_only=false, embed_batch_size=None, embed_model=None))]
+    fn open(py: Python<'_>, path: &str, auto_embed: bool, read_only: bool, embed_batch_size: Option<usize>, embed_model: Option<&str>) -> PyResult<Self> {
         // Auto-download model files when auto_embed is requested (best-effort).
         #[cfg(feature = "embed")]
         if auto_embed {
@@ -199,6 +200,9 @@ impl PyStrata {
         }
         if let Some(bs) = embed_batch_size {
             opts = opts.embed_batch_size(bs);
+        }
+        if let Some(model) = embed_model {
+            opts = opts.embed_model(model);
         }
 
         let inner = RustStrata::open_with(path, opts).map_err(to_py_err)?;
@@ -1576,12 +1580,13 @@ impl PyStrata {
 
     /// Get the current database configuration.
     ///
-    /// Returns a dict with 'durability', 'auto_embed', and optional 'model'.
+    /// Returns a dict with 'durability', 'auto_embed', 'embed_model', and optional 'model'.
     fn config(&self, py: Python<'_>) -> PyResult<PyObject> {
         let cfg = self.inner.config().map_err(to_py_err)?;
         let dict = PyDict::new_bound(py);
         dict.set_item("durability", &cfg.durability)?;
         dict.set_item("auto_embed", cfg.auto_embed)?;
+        dict.set_item("embed_model", &cfg.embed_model)?;
         if let Some(ref model) = cfg.model {
             let model_dict = PyDict::new_bound(py);
             model_dict.set_item("endpoint", &model.endpoint)?;
@@ -2026,7 +2031,7 @@ impl PyStrata {
     /// Set a database configuration key.
     ///
     /// Supported keys: `provider`, `default_model`, `anthropic_api_key`,
-    /// `openai_api_key`, `google_api_key`.
+    /// `openai_api_key`, `google_api_key`, `embed_model`.
     fn configure_set(&self, key: &str, value: &str) -> PyResult<()> {
         match self
             .inner

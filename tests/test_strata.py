@@ -1218,6 +1218,7 @@ class TestConfiguration:
         cfg = db.config()
         assert cfg["durability"] == "standard"
         assert cfg["auto_embed"] is False
+        assert cfg["embed_model"] == "miniLM"
         assert cfg["model"] is None
 
     def test_auto_embed_enabled_default(self, db):
@@ -1283,3 +1284,58 @@ class TestSearch:
         assert hasattr(db, "search")
         results = db.search("anything", k=5, mode="hybrid")
         assert isinstance(results, list)
+
+
+class TestEmbedModel:
+    """Tests for configurable embedding model selection."""
+
+    def test_default_embed_model_is_minilm(self, db):
+        cfg = db.config()
+        assert cfg["embed_model"] == "miniLM"
+
+    def test_configure_get_embed_model_default(self, db):
+        assert db.configure_get("embed_model") == "miniLM"
+
+    def test_set_embed_model_via_configure_set(self, db):
+        db.configure_set("embed_model", "nomic-embed")
+        assert db.configure_get("embed_model") == "nomic-embed"
+
+    def test_set_embed_model_convenience_method(self, db):
+        db.set_embed_model("bge-m3")
+        assert db.configure_get("embed_model") == "bge-m3"
+
+    def test_embed_model_all_valid_models(self, db):
+        for model in ["miniLM", "nomic-embed", "bge-m3", "gemma-embed"]:
+            db.set_embed_model(model)
+            assert db.configure_get("embed_model") == model
+
+    def test_embed_model_case_normalization(self, db):
+        db.set_embed_model("MINILM")
+        assert db.configure_get("embed_model") == "miniLM"
+
+    def test_embed_model_invalid_raises(self, db):
+        with pytest.raises(ValidationError):
+            db.set_embed_model("unknown-model")
+
+    def test_embed_model_empty_raises(self, db):
+        with pytest.raises(ValidationError):
+            db.set_embed_model("")
+
+    def test_embed_model_visible_in_config(self, db):
+        db.set_embed_model("nomic-embed")
+        cfg = db.config()
+        assert cfg["embed_model"] == "nomic-embed"
+
+    def test_embed_model_overwrite(self, db):
+        db.set_embed_model("nomic-embed")
+        db.set_embed_model("bge-m3")
+        assert db.configure_get("embed_model") == "bge-m3"
+
+    def test_embed_model_does_not_affect_other_config(self, db):
+        db.set_embed_model("bge-m3")
+        assert db.configure_get("provider") == "local"
+
+    def test_open_with_embed_model(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            db = Strata.open(tmpdir, embed_model="nomic-embed")
+            assert db.configure_get("embed_model") == "nomic-embed"

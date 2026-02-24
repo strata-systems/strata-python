@@ -632,9 +632,22 @@ class Strata:
     # -- Construction (static) ------------------------------------------------
 
     @staticmethod
-    def open(path, auto_embed=False, read_only=False, embed_batch_size=None):
-        """Open a database at the given path."""
-        return Strata(_Strata.open(path, auto_embed=auto_embed, read_only=read_only, embed_batch_size=embed_batch_size))
+    def open(path, auto_embed=False, read_only=False, embed_batch_size=None,
+             embed_model=None):
+        """Open a database at the given path.
+
+        Args:
+            path: Directory path for the database.
+            auto_embed: Enable automatic text embedding for semantic search.
+            read_only: Open in read-only mode.
+            embed_batch_size: Number of texts to batch for embedding (default 64).
+            embed_model: Embedding model name. One of ``"miniLM"`` (384d, default),
+                ``"nomic-embed"`` (768d), ``"bge-m3"`` (1024d), or ``"gemma-embed"`` (768d).
+                Changing after data is indexed requires re-indexing.
+        """
+        return Strata(_Strata.open(path, auto_embed=auto_embed, read_only=read_only,
+                                   embed_batch_size=embed_batch_size,
+                                   embed_model=embed_model))
 
     @staticmethod
     def cache():
@@ -651,9 +664,9 @@ class Strata:
     def config(self):
         """Get the current database configuration.
 
-        Returns a dict with ``"durability"``, ``"auto_embed"``, and
-        ``"model"`` (a dict with ``"endpoint"``, ``"model"``, ``"api_key"``,
-        ``"timeout_ms"``, or ``None``).
+        Returns a dict with ``"durability"``, ``"auto_embed"``,
+        ``"embed_model"``, and ``"model"`` (a dict with ``"endpoint"``,
+        ``"model"``, ``"api_key"``, ``"timeout_ms"``, or ``None``).
         """
         return self._inner.config()
 
@@ -721,7 +734,7 @@ class Strata:
 
         Supported keys: ``"provider"`` (local/anthropic/openai/google),
         ``"default_model"``, ``"anthropic_api_key"``, ``"openai_api_key"``,
-        ``"google_api_key"``.
+        ``"google_api_key"``, ``"embed_model"`` (miniLM/nomic-embed/bge-m3/gemma-embed).
 
         Args:
             key: Configuration key name.
@@ -815,6 +828,17 @@ class Strata:
             provider: One of ``"local"``, ``"anthropic"``, ``"openai"``, ``"google"``.
         """
         self._inner.configure_set("provider", provider)
+
+    def set_embed_model(self, model):
+        """Set the embedding model for vector search.
+
+        Changing the model after data has been indexed requires re-indexing.
+
+        Args:
+            model: One of ``"miniLM"`` (384d, default), ``"nomic-embed"`` (768d),
+                ``"bge-m3"`` (1024d), or ``"gemma-embed"`` (768d).
+        """
+        self._inner.configure_set("embed_model", model)
 
     # -- Search ---------------------------------------------------------------
 
