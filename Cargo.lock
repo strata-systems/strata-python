@@ -906,8 +906,7 @@ checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
 
 [[package]]
 name = "strata-concurrency"
-version = "0.5.1"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#8b683e5774d5b2f330c6f6c2a4e0fe8a22f393fa"
+version = "0.6.0"
 dependencies = [
  "chrono",
  "dashmap",
@@ -923,8 +922,7 @@ dependencies = [
 
 [[package]]
 name = "strata-core"
-version = "0.5.1"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#8b683e5774d5b2f330c6f6c2a4e0fe8a22f393fa"
+version = "0.6.0"
 dependencies = [
  "bincode",
  "chrono",
@@ -936,10 +934,10 @@ dependencies = [
 
 [[package]]
 name = "strata-durability"
-version = "0.5.1"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#8b683e5774d5b2f330c6f6c2a4e0fe8a22f393fa"
+version = "0.6.0"
 dependencies = [
  "crc32fast",
+ "fs2",
  "parking_lot",
  "rmp-serde",
  "serde",
@@ -955,8 +953,7 @@ dependencies = [
 
 [[package]]
 name = "strata-engine"
-version = "0.5.1"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#8b683e5774d5b2f330c6f6c2a4e0fe8a22f393fa"
+version = "0.6.0"
 dependencies = [
  "base64 0.21.7",
  "byteorder",
@@ -977,13 +974,13 @@ dependencies = [
  "thiserror",
  "toml",
  "tracing",
+ "unicode-segmentation",
  "uuid",
 ]
 
 [[package]]
 name = "strata-executor"
-version = "0.5.1"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#8b683e5774d5b2f330c6f6c2a4e0fe8a22f393fa"
+version = "0.6.0"
 dependencies = [
  "base64 0.21.7",
  "chrono",
@@ -993,6 +990,7 @@ dependencies = [
  "strata-core",
  "strata-engine",
  "strata-intelligence",
+ "strata-search",
  "strata-security",
  "thiserror",
  "tracing",
@@ -1000,34 +998,47 @@ dependencies = [
 ]
 
 [[package]]
-name = "strata-intelligence"
-version = "0.5.1"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#8b683e5774d5b2f330c6f6c2a4e0fe8a22f393fa"
+name = "strata-inference"
+version = "0.6.0"
 dependencies = [
- "dashmap",
+ "thiserror",
+ "tracing",
+ "ureq",
+]
+
+[[package]]
+name = "strata-intelligence"
+version = "0.6.0"
+dependencies = [
  "once_cell",
+ "strata-core",
+ "strata-engine",
+ "strata-inference",
+ "tracing",
+]
+
+[[package]]
+name = "strata-search"
+version = "0.6.0"
+dependencies = [
+ "rayon",
  "serde",
  "serde_json",
  "strata-core",
  "strata-engine",
- "tar",
  "tracing",
- "ureq",
- "zstd",
 ]
 
 [[package]]
 name = "strata-security"
-version = "0.5.1"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#8b683e5774d5b2f330c6f6c2a4e0fe8a22f393fa"
+version = "0.6.0"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "strata-storage"
-version = "0.5.1"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#8b683e5774d5b2f330c6f6c2a4e0fe8a22f393fa"
+version = "0.6.0"
 dependencies = [
  "dashmap",
  "rustc-hash",
@@ -1037,8 +1048,7 @@ dependencies = [
 
 [[package]]
 name = "stratadb"
-version = "0.5.1"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#8b683e5774d5b2f330c6f6c2a4e0fe8a22f393fa"
+version = "0.6.0"
 dependencies = [
  "serde_json",
  "strata-executor",
@@ -1048,7 +1058,7 @@ dependencies = [
 
 [[package]]
 name = "stratadb-python"
-version = "0.13.2"
+version = "0.14.0"
 dependencies = [
  "numpy",
  "pyo3",
@@ -1194,6 +1204,12 @@ name = "unicode-ident"
 version = "1.0.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "537dd038a89878be9b64dd4bd1b260315c1bb94f4d784956b81e27a088d9a09e"
+
+[[package]]
+name = "unicode-segmentation"
+version = "1.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f6ccf251212114b54433ec949fd6a7841275f9ada20dddd2f29e9ceea4501493"
 
 [[package]]
 name = "unindent"

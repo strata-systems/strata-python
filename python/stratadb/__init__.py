@@ -716,6 +716,30 @@ class Strata:
         """
         self._inner.configure_model(endpoint, model, api_key=api_key, timeout_ms=timeout_ms)
 
+    def configure_set(self, key, value):
+        """Set a database configuration key.
+
+        Supported keys: ``"provider"`` (local/anthropic/openai/google),
+        ``"default_model"``, ``"anthropic_api_key"``, ``"openai_api_key"``,
+        ``"google_api_key"``.
+
+        Args:
+            key: Configuration key name.
+            value: Configuration value.
+        """
+        self._inner.configure_set(key, value)
+
+    def configure_get(self, key):
+        """Get a database configuration value by key.
+
+        Args:
+            key: Configuration key name.
+
+        Returns:
+            The configuration value as a string, or ``None`` if not set.
+        """
+        return self._inner.configure_get(key)
+
     # -- Search ---------------------------------------------------------------
 
     def search(self, query, *, k=None, primitives=None, time_range=None,
@@ -1074,4 +1098,4 @@ __all__ = [
     "AccessDeniedError",
     "IoError",
 ]
-__version__ = "0.13.3"
+__version__ = "0.14.0"

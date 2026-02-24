@@ -151,6 +151,14 @@ class Strata:
         """
         ...
 
+    def configure_set(self, key: str, value: str) -> None:
+        """Set a database configuration key."""
+        ...
+
+    def configure_get(self, key: str) -> Optional[str]:
+        """Get a database configuration value by key."""
+        ...
+
     # -- KV Store -------------------------------------------------------------
 
     def kv_put(self, key: str, value: Value) -> int:

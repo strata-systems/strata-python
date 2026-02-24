@@ -1708,6 +1708,7 @@ impl PyStrata {
             mode: mode.map(|s| s.to_string()),
             expand,
             rerank,
+            precomputed_embedding: None,
         };
 
         let cmd = Command::Search {
@@ -2014,6 +2015,50 @@ impl PyStrata {
             Output::DurabilityCounters(counters) => wal_counters_to_py(py, counters),
             _ => Err(PyRuntimeError::new_err(
                 "Unexpected output for DurabilityCounters",
+            )),
+        }
+    }
+
+    // =========================================================================
+    // Configuration Key Management
+    // =========================================================================
+
+    /// Set a database configuration key.
+    ///
+    /// Supported keys: `provider`, `default_model`, `anthropic_api_key`,
+    /// `openai_api_key`, `google_api_key`.
+    fn configure_set(&self, key: &str, value: &str) -> PyResult<()> {
+        match self
+            .inner
+            .executor()
+            .execute(Command::ConfigureSet {
+                key: key.to_string(),
+                value: value.to_string(),
+            })
+            .map_err(to_py_err)?
+        {
+            Output::Unit => Ok(()),
+            _ => Err(PyRuntimeError::new_err(
+                "Unexpected output for ConfigureSet",
+            )),
+        }
+    }
+
+    /// Get a database configuration value by key.
+    ///
+    /// Returns the value as a string, or None if not set.
+    fn configure_get(&self, key: &str) -> PyResult<Option<String>> {
+        match self
+            .inner
+            .executor()
+            .execute(Command::ConfigureGetKey {
+                key: key.to_string(),
+            })
+            .map_err(to_py_err)?
+        {
+            Output::ConfigValue(v) => Ok(v),
+            _ => Err(PyRuntimeError::new_err(
+                "Unexpected output for ConfigureGetKey",
             )),
         }
     }

@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "stratadb"
-version = "0.13.3"
+version = "0.14.0"
 description = "Python SDK for StrataDB - an embedded database for AI agents"
 readme = "README.md"
 license = {text = "MIT"}
