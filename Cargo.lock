@@ -907,7 +907,7 @@ checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
 [[package]]
 name = "strata-concurrency"
 version = "0.6.0"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#cd8f72b21118dc5238962fe5fd173e89edeb701f"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#7bac2522b2d44410368ff1c36522ddf8c07e2195"
 dependencies = [
  "chrono",
  "dashmap",
@@ -924,7 +924,7 @@ dependencies = [
 [[package]]
 name = "strata-core"
 version = "0.6.0"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#cd8f72b21118dc5238962fe5fd173e89edeb701f"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#7bac2522b2d44410368ff1c36522ddf8c07e2195"
 dependencies = [
  "bincode",
  "chrono",
@@ -937,7 +937,7 @@ dependencies = [
 [[package]]
 name = "strata-durability"
 version = "0.6.0"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#cd8f72b21118dc5238962fe5fd173e89edeb701f"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#7bac2522b2d44410368ff1c36522ddf8c07e2195"
 dependencies = [
  "crc32fast",
  "fs2",
@@ -957,7 +957,7 @@ dependencies = [
 [[package]]
 name = "strata-engine"
 version = "0.6.0"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#cd8f72b21118dc5238962fe5fd173e89edeb701f"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#7bac2522b2d44410368ff1c36522ddf8c07e2195"
 dependencies = [
  "base64 0.21.7",
  "byteorder",
@@ -985,7 +985,7 @@ dependencies = [
 [[package]]
 name = "strata-executor"
 version = "0.6.0"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#cd8f72b21118dc5238962fe5fd173e89edeb701f"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#7bac2522b2d44410368ff1c36522ddf8c07e2195"
 dependencies = [
  "base64 0.21.7",
  "chrono",
@@ -1005,7 +1005,7 @@ dependencies = [
 [[package]]
 name = "strata-inference"
 version = "0.6.0"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#cd8f72b21118dc5238962fe5fd173e89edeb701f"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#7bac2522b2d44410368ff1c36522ddf8c07e2195"
 dependencies = [
  "thiserror",
  "tracing",
@@ -1015,7 +1015,7 @@ dependencies = [
 [[package]]
 name = "strata-intelligence"
 version = "0.6.0"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#cd8f72b21118dc5238962fe5fd173e89edeb701f"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#7bac2522b2d44410368ff1c36522ddf8c07e2195"
 dependencies = [
  "once_cell",
  "strata-core",
@@ -1027,7 +1027,7 @@ dependencies = [
 [[package]]
 name = "strata-search"
 version = "0.6.0"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#cd8f72b21118dc5238962fe5fd173e89edeb701f"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#7bac2522b2d44410368ff1c36522ddf8c07e2195"
 dependencies = [
  "rayon",
  "serde",
@@ -1040,7 +1040,7 @@ dependencies = [
 [[package]]
 name = "strata-security"
 version = "0.6.0"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#cd8f72b21118dc5238962fe5fd173e89edeb701f"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#7bac2522b2d44410368ff1c36522ddf8c07e2195"
 dependencies = [
  "serde",
 ]
@@ -1048,7 +1048,7 @@ dependencies = [
 [[package]]
 name = "strata-storage"
 version = "0.6.0"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#cd8f72b21118dc5238962fe5fd173e89edeb701f"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#7bac2522b2d44410368ff1c36522ddf8c07e2195"
 dependencies = [
  "dashmap",
  "rustc-hash",
@@ -1059,7 +1059,7 @@ dependencies = [
 [[package]]
 name = "stratadb"
 version = "0.6.0"
-source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#cd8f72b21118dc5238962fe5fd173e89edeb701f"
+source = "git+https://github.com/strata-ai-labs/strata-core?branch=main#7bac2522b2d44410368ff1c36522ddf8c07e2195"
 dependencies = [
  "serde_json",
  "strata-executor",
@@ -1069,7 +1069,7 @@ dependencies = [
 
 [[package]]
 name = "stratadb-python"
-version = "0.14.0"
+version = "0.15.0"
 dependencies = [
  "numpy",
  "pyo3",
