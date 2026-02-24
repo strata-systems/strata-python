@@ -740,6 +740,82 @@ class Strata:
         """
         return self._inner.configure_get(key)
 
+    def configure_anthropic(self, api_key, *, model=None, activate=True):
+        """Configure Anthropic (Claude) as a cloud provider.
+
+        Stores the API key and optionally sets a default model.
+        By default, also switches the active provider to Anthropic.
+
+        Args:
+            api_key: Anthropic API key.
+            model: Default model name (e.g. ``"claude-sonnet-4-20250514"``).
+            activate: If ``True`` (default), immediately switch to this provider.
+        """
+        self._inner.configure_set("anthropic_api_key", api_key)
+        if model is not None:
+            self._inner.configure_set("default_model", model)
+        if activate:
+            self._inner.configure_set("provider", "anthropic")
+
+    def configure_openai(self, api_key, *, model=None, activate=True):
+        """Configure OpenAI as a cloud provider.
+
+        Stores the API key and optionally sets a default model.
+        By default, also switches the active provider to OpenAI.
+
+        Args:
+            api_key: OpenAI API key.
+            model: Default model name (e.g. ``"gpt-4o"``).
+            activate: If ``True`` (default), immediately switch to this provider.
+        """
+        self._inner.configure_set("openai_api_key", api_key)
+        if model is not None:
+            self._inner.configure_set("default_model", model)
+        if activate:
+            self._inner.configure_set("provider", "openai")
+
+    def configure_google(self, api_key, *, model=None, activate=True):
+        """Configure Google (Gemini) as a cloud provider.
+
+        Stores the API key and optionally sets a default model.
+        By default, also switches the active provider to Google.
+
+        Args:
+            api_key: Google API key.
+            model: Default model name (e.g. ``"gemini-2.0-flash"``).
+            activate: If ``True`` (default), immediately switch to this provider.
+        """
+        self._inner.configure_set("google_api_key", api_key)
+        if model is not None:
+            self._inner.configure_set("default_model", model)
+        if activate:
+            self._inner.configure_set("provider", "google")
+
+    def configure_local(self, *, model=None, activate=True):
+        """Configure local inference as the provider.
+
+        Switches back to local GGUF model inference.
+
+        Args:
+            model: Default model name (e.g. ``"qwen3:8b"``).
+            activate: If ``True`` (default), immediately switch to local.
+        """
+        if model is not None:
+            self._inner.configure_set("default_model", model)
+        if activate:
+            self._inner.configure_set("provider", "local")
+
+    def use_provider(self, provider):
+        """Switch the active inference provider.
+
+        All providers must be configured first via ``configure_anthropic()``,
+        ``configure_openai()``, ``configure_google()``, or ``configure_local()``.
+
+        Args:
+            provider: One of ``"local"``, ``"anthropic"``, ``"openai"``, ``"google"``.
+        """
+        self._inner.configure_set("provider", provider)
+
     # -- Search ---------------------------------------------------------------
 
     def search(self, query, *, k=None, primitives=None, time_range=None,
@@ -1098,4 +1174,4 @@ __all__ = [
     "AccessDeniedError",
     "IoError",
 ]
-__version__ = "0.14.0"
+__version__ = "0.14.1"
