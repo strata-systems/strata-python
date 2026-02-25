@@ -582,8 +582,7 @@ def setup():
     """Download model files for auto-embedding.
 
     Downloads MiniLM-L6-v2 model files (~80MB) to ~/.stratadb/models/minilm-l6-v2/.
-    Called automatically when ``auto_embed=True`` is passed to ``Strata.open()``,
-    but can be called explicitly to pre-download during installation.
+    Can be called explicitly to pre-download during installation.
 
     Returns:
         The path where model files are stored.
@@ -632,22 +631,18 @@ class Strata:
     # -- Construction (static) ------------------------------------------------
 
     @staticmethod
-    def open(path, auto_embed=False, read_only=False, embed_batch_size=None,
-             embed_model=None):
+    def open(path, read_only=False):
         """Open a database at the given path.
+
+        Configuration (auto_embed, embed_model, embed_batch_size, etc.) is
+        managed via ``configure_set()`` / ``configure_get()`` and persisted
+        automatically in ``strata.toml``.
 
         Args:
             path: Directory path for the database.
-            auto_embed: Enable automatic text embedding for semantic search.
             read_only: Open in read-only mode.
-            embed_batch_size: Number of texts to batch for embedding (default 64).
-            embed_model: Embedding model name. One of ``"miniLM"`` (384d, default),
-                ``"nomic-embed"`` (768d), ``"bge-m3"`` (1024d), or ``"gemma-embed"`` (768d).
-                Changing after data is indexed requires re-indexing.
         """
-        return Strata(_Strata.open(path, auto_embed=auto_embed, read_only=read_only,
-                                   embed_batch_size=embed_batch_size,
-                                   embed_model=embed_model))
+        return Strata(_Strata.open(path, read_only=read_only))
 
     @staticmethod
     def cache():
@@ -732,13 +727,15 @@ class Strata:
     def configure_set(self, key, value):
         """Set a database configuration key.
 
-        Supported keys: ``"provider"`` (local/anthropic/openai/google),
-        ``"default_model"``, ``"anthropic_api_key"``, ``"openai_api_key"``,
-        ``"google_api_key"``, ``"embed_model"`` (miniLM/nomic-embed/bge-m3/gemma-embed).
+        Supported keys: ``"provider"``, ``"default_model"``,
+        ``"anthropic_api_key"``, ``"openai_api_key"``, ``"google_api_key"``,
+        ``"embed_model"``, ``"durability"``, ``"auto_embed"``, ``"bm25_k1"``,
+        ``"bm25_b"``, ``"embed_batch_size"``, ``"model_endpoint"``,
+        ``"model_name"``, ``"model_api_key"``, ``"model_timeout_ms"``.
 
         Args:
             key: Configuration key name.
-            value: Configuration value.
+            value: Configuration value (always a string).
         """
         self._inner.configure_set(key, value)
 

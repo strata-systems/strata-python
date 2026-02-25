@@ -167,42 +167,13 @@ impl PyStrata {
     ///
     /// Args:
     ///     path: Directory path for the database.
-    ///     auto_embed: Enable automatic text embedding for semantic search.
     ///     read_only: Open in read-only mode.
-    ///     embed_batch_size: Number of texts to batch for embedding (default 64).
-    ///     embed_model: Embedding model name ("miniLM", "nomic-embed", "bge-m3", "gemma-embed").
     #[staticmethod]
-    #[pyo3(signature = (path, auto_embed=false, read_only=false, embed_batch_size=None, embed_model=None))]
-    fn open(py: Python<'_>, path: &str, auto_embed: bool, read_only: bool, embed_batch_size: Option<usize>, embed_model: Option<&str>) -> PyResult<Self> {
-        // Auto-download model files when auto_embed is requested (best-effort).
-        #[cfg(feature = "embed")]
-        if auto_embed {
-            if let Err(e) = strata_intelligence::embed::download::ensure_model() {
-                PyErr::warn_bound(
-                    py,
-                    &py.get_type_bound::<pyo3::exceptions::PyUserWarning>(),
-                    &format!("Failed to download embedding model: {}", e),
-                    1,
-                )?;
-            }
-        }
-
-        // Suppress unused variable warning when embed feature is disabled.
-        #[cfg(not(feature = "embed"))]
-        let _ = py;
-
+    #[pyo3(signature = (path, read_only=false))]
+    fn open(path: &str, read_only: bool) -> PyResult<Self> {
         let mut opts = OpenOptions::new();
-        if auto_embed {
-            opts = opts.auto_embed(true);
-        }
         if read_only {
             opts = opts.access_mode(AccessMode::ReadOnly);
-        }
-        if let Some(bs) = embed_batch_size {
-            opts = opts.embed_batch_size(bs);
-        }
-        if let Some(model) = embed_model {
-            opts = opts.embed_model(model);
         }
 
         let inner = RustStrata::open_with(path, opts).map_err(to_py_err)?;
@@ -225,8 +196,7 @@ impl PyStrata {
     /// Download model files for auto-embedding.
     ///
     /// Downloads MiniLM-L6-v2 model files to ~/.stratadb/models/minilm-l6-v2/.
-    /// Called automatically when auto_embed=True, but can be called explicitly
-    /// to pre-download (e.g., during pip install).
+    /// Can be called explicitly to pre-download (e.g., during pip install).
     ///
     /// Returns the path where model files are stored.
     #[staticmethod]
@@ -2031,7 +2001,9 @@ impl PyStrata {
     /// Set a database configuration key.
     ///
     /// Supported keys: `provider`, `default_model`, `anthropic_api_key`,
-    /// `openai_api_key`, `google_api_key`, `embed_model`.
+    /// `openai_api_key`, `google_api_key`, `embed_model`, `durability`,
+    /// `auto_embed`, `bm25_k1`, `bm25_b`, `embed_batch_size`,
+    /// `model_endpoint`, `model_name`, `model_api_key`, `model_timeout_ms`.
     fn configure_set(&self, key: &str, value: &str) -> PyResult<()> {
         match self
             .inner
