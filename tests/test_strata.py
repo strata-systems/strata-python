@@ -1335,7 +1335,8 @@ class TestEmbedModel:
         db.set_embed_model("bge-m3")
         assert db.configure_get("provider") == "local"
 
-    def test_open_with_embed_model(self):
+    def test_open_then_set_embed_model(self):
         with tempfile.TemporaryDirectory() as tmpdir:
-            db = Strata.open(tmpdir, embed_model="nomic-embed")
+            db = Strata.open(tmpdir)
+            db.configure_set("embed_model", "nomic-embed")
             assert db.configure_get("embed_model") == "nomic-embed"
